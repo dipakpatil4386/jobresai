@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobRes.ai — AI Resume Analyzer & Job Matcher</title>
+    <meta name="description" content="Instantly analyze your resume with AI. Get ATS readiness scores, skill gap analysis, tailored job matches from live feeds, and an AI-generated cover letter — all in real time, nothing stored.">
+    <meta name="keywords" content="resume analyzer, ATS score, job matcher, AI resume coach, resume feedback, cover letter generator, skill gap analysis, job search">
+    <meta name="author" content="JobRes.ai">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jobres.ai/">
+    <meta property="og:title" content="JobRes.ai — AI Resume Analyzer & Job Matcher">
+    <meta property="og:description" content="Instantly analyze your resume with AI. Get ATS readiness scores, skill gap analysis, tailored job matches, and a cover letter draft — in real time, nothing stored.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/logo.svg', _external=True) }}">
+    <meta property="og:site_name" content="JobRes.ai">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="JobRes.ai — AI Resume Analyzer & Job Matcher">
+    <meta name="twitter:description" content="Real-time AI resume analysis with ATS scores, job matching, skill gaps, and cover letter generation. Your resume never touches disk.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/logo.svg', _external=True) }}">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://jobres.ai/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "JobRes.ai",
+        "url": "https://jobres.ai/",
+        "description": "AI-powered resume analyzer and job matcher. Provides ATS readiness scores, skill gap analysis, live job feed matching, and auto-generated cover letters in real time.",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Resume ATS score",
+            "Skill gap analysis",
+            "Live job matching",
+            "AI cover letter generation",
+            "Resume feedback",
+            "PDF export"
+        ]
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="site-sticky-top">
+        <header class="app-header">
+            <a href="#uploadSection" class="logo">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" class="logo-icon" alt="JobRes.ai logo" width="36" height="36">
+                JobRes<span>.ai</span>
+            </a>
+            <div class="header-actions">
+                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme">Dark mode</button>
+            </div>
+        </header>
+
+        <nav class="site-nav" id="siteNav" aria-label="Jump to section">
+            <a href="#uploadSection" class="site-nav-link active" data-nav-target="uploadSection">
+                <span class="nav-text-full">Analyze resume</span>
+                <span class="nav-text-short">Analyze</span>
+            </a>
+            <a href="#jdMatchSection" class="site-nav-link" data-nav-target="jdMatchSection">
+                <span class="nav-text-full">Match resume with job</span>
+                <span class="nav-text-short">Match</span>
+            </a>
+            <a href="#jobSearchSection" class="site-nav-link" data-nav-target="jobSearchSection">
+                <span class="nav-text-full">Search jobs</span>
+                <span class="nav-text-short">Search</span>
+            </a>
+        </nav>
+
+    </div>
+
+    <main class="main-wrap">
+        <section class="hero-card" id="uploadSection">
+            <div class="badge-row">
+                <span class="pill">No storage</span>
+                {% if websocket_enabled %}
+                <span class="pill">WebSocket live</span>
+                {% else %}
+                <span class="pill">HTTP mode</span>
+                {% endif %}
+                <span class="pill {% if feeds_status.enabled %}live{% else %}preview{% endif %}">Job feeds</span>
+            </div>
+            <h1>AI Resume Analyzer & Job Matcher</h1>
+            <p class="subtitle">{% if websocket_enabled %}Real-time pipeline with live progress streaming. {% endif %}Your resume never touches disk.</p>
+
+            <div class="alert error" id="errorAlert" role="alert"></div>
+
+            <div class="tabs">
+                <button type="button" class="tab active" data-tab="file">Upload file</button>
+                <button type="button" class="tab" data-tab="paste">Paste text</button>
+            </div>
+
+            <form id="analyzeForm">
+                <div id="fileTab">
+                    <label class="upload-area main-upload-area" id="uploadArea" for="fileInput">
+                        <div class="jd-upload-icon" aria-hidden="true">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="12" y1="18" x2="12" y2="12"/>
+                                <line x1="9" y1="15" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <p class="jd-upload-title"><strong>Click or drag</strong> your resume here</p>
+                        <p class="jd-upload-hint">PDF or DOCX · max {{ max_upload_mb }}MB</p>
+                        <p class="jd-upload-filename" id="uploadFilename" aria-live="polite"></p>
+                        <input type="file" name="resume" id="fileInput" class="file-input" accept=".pdf,.docx" title="Upload resume for analysis (PDF or DOCX, max {{ max_upload_mb }}MB)" aria-label="Upload resume for analysis (PDF or DOCX, max {{ max_upload_mb }}MB)">
+                    </label>
+                </div>
+
+                <div id="pasteTab" class="hidden">
+                    <textarea name="resume_text" id="resumeText" class="text-area" placeholder="Paste your resume text here..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="targetRole">Target role focus</label>
+                        <select name="target_role" id="targetRole">
+                            <option value="">Auto-detect best match</option>
+                            {% for role in target_roles %}
+                            <option value="{{ role }}">{{ role.replace('_', ' ').title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">Analyze with live progress</button>
+            </form>
+
+            <div class="loading-panel" id="loadingPanel">
+                <div class="spinner"></div>
+                <p id="loadingMessage">Initializing analysis...</p>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <p id="progressPercent" style="font-size:0.85rem;color:var(--text-muted)">0%</p>
+                <div class="progress-steps" id="progressSteps">
+                    <span class="progress-step" data-step="parse">Parse</span>
+                    <span class="progress-step" data-step="skills">Skills</span>
+                    <span class="progress-step" data-step="jobs">Match</span>
+                    <span class="progress-step" data-step="feeds">Feeds</span>
+                    <span class="progress-step" data-step="ats">ATS</span>
+                    <span class="progress-step" data-step="feedback">Feedback</span>
+                    <span class="progress-step" data-step="cover_letter">Letter</span>
+                    <span class="progress-step" data-step="ai">AI</span>
+                    <span class="progress-step" data-step="done">Done</span>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="resultsSection" class="results-section">
+            <div class="results-header panel" style="padding:1.25rem 1.5rem">
+                <div>
+                    <h2>Analysis results</h2>
+                    <p class="subtitle" style="margin:0">Streamed in real time — nothing saved on server</p>
+                </div>
+                <div class="results-actions">
+                    <button type="button" class="btn btn-secondary" id="exportPdfBtn">Export PDF</button>
+                    <button type="button" class="btn btn-secondary" id="exportBtn">Export JSON</button>
+                    <button type="button" class="btn btn-secondary" id="newAnalysisBtn">New analysis</button>
+                </div>
+            </div>
+
+            <div class="filter-bar panel" style="padding:1rem 1.5rem">
+                <label><input type="checkbox" id="remoteFilter"> Remote jobs only</label>
+            </div>
+
+            <div class="grid-2" id="resultsGrid"></div>
+        </section>
+
+        <section class="hero-card" id="jdMatchSection">
+            <h2>Match resume to a job description</h2>
+            <p class="subtitle">Upload your resume and paste a job posting to get a calibrated match score, skill gaps, and keyword alignment.</p>
+
+            <div class="alert error" id="jdMatchErrorAlert" role="alert"></div>
+
+            <form id="jdMatchForm" class="jd-match-form">
+                <div class="tabs jd-match-tabs">
+                    <button type="button" class="tab active" data-jd-tab="file">Upload file</button>
+                    <button type="button" class="tab" data-jd-tab="paste">Paste text</button>
+                </div>
+
+                <div id="jdFileTab">
+                    <label
+                        class="upload-area jd-upload-area"
+                        id="jdUploadArea"
+                        for="jdMatchFile"
+                    >
+                        <div class="jd-upload-icon" aria-hidden="true">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="12" y1="18" x2="12" y2="12"/>
+                                <line x1="9" y1="15" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <p class="jd-upload-title"><strong>Click or drag</strong> your resume</p>
+                        <p class="jd-upload-hint">PDF or DOCX · max {{ max_upload_mb }}MB</p>
+                        <p class="jd-upload-filename" id="jdUploadFilename" aria-live="polite"></p>
+                        <input type="file" id="jdMatchFile" name="resume" class="file-input" accept=".pdf,.docx" title="Upload resume for job match (PDF or DOCX, max {{ max_upload_mb }}MB)" aria-label="Upload resume for job match (PDF or DOCX, max {{ max_upload_mb }}MB)">
+                    </label>
+                </div>
+
+                <div id="jdPasteTab" class="hidden">
+                    <textarea id="jdMatchResumeText" name="resume_text" class="text-area jd-match-textarea" placeholder="Paste your resume text here..."></textarea>
+                </div>
+
+                <div class="jd-job-field">
+                    <label class="jd-field-label" for="jdJobDescription">Job description</label>
+                    <textarea id="jdJobDescription" name="job_description" class="text-area jd-job-textarea" placeholder="Paste the full job description here..." required></textarea>
+                </div>
+                <button type="submit" class="btn" id="jdMatchBtn">Match to job description</button>
+            </form>
+
+            <div class="loading-panel" id="jdMatchLoadingPanel">
+                <div class="spinner"></div>
+                <p>Comparing resume to job description...</p>
+            </div>
+            
+            <div id="jdMatchResults" class="jd-match-results hidden"></div>
+        </section>
+
+        <section class="hero-card" id="jobSearchSection">
+            <h2>Search live jobs</h2>
+            <p class="subtitle">Search by skill, job title, or company across Arbeitnow, Remotive, and RemoteJobs.org</p>
+
+            <form id="jobSearchForm" class="job-search-form">
+                <div class="search-bar-wrap">
+                    <input
+                        type="search"
+                        id="jobSearchInput"
+                        class="search-input"
+                        placeholder="e.g. Python, Data Scientist, Google..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="btn" id="jobSearchBtn">Search jobs</button>
+                </div>
+
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label for="workModeFilter">Work mode</label>
+                        <select id="workModeFilter" name="work_mode">
+                            <option value="all">All</option>
+                            <option value="remote">Remote</option>
+                            <option value="onsite">On-site</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="postedFilter">Posted within</label>
+                        <select id="postedFilter" name="posted_within">
+                            <option value="all">Any time</option>
+                            <option value="1">Last 24 hours</option>
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                        </select>
+                    </div>
+                </div>
+        </form>
+        
+            <div class="alert error" id="searchErrorAlert" role="alert"></div>
+            <div class="loading-panel" id="searchLoadingPanel">
+                <div class="spinner"></div>
+                <p>Searching job boards...</p>
+            </div>
+            <div id="jobSearchResults" class="job-search-results hidden"></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="site-footer-brand">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="JobRes.ai logo" width="24" height="24">
+                <span>JobRes<strong>.ai</strong></span>
+            </div>
+            <p class="site-footer-tagline">AI-powered resume analysis. Real time.</p>
+            <nav class="site-footer-links" aria-label="Footer navigation">
+                <a href="#uploadSection">Analyze resume</a>
+                <a href="#jdMatchSection">Match with job</a>
+                <a href="#jobSearchSection">Search jobs</a>
+            </nav>
+            <p class="site-footer-copy">&copy; {{ 2026 }} JobRes.ai &mdash; AI resume checker and Job Matcher.</p>
+        </div>
+    </footer>
+    
+    <script id="jobres-config" type="application/json">
+        {{ {
+            "aiEnabled": ai_status.enabled,
+            "feedsEnabled": feeds_status.enabled,
+            "websocketEnabled": websocket_enabled,
+            "maxUploadBytes": max_upload_mb * 1024 * 1024,
+            "maxUploadMb": max_upload_mb,
+            "vercel": vercel_deploy
+        } | tojson }}
+    </script>
+    <script>
+        window.JOBRES_CONFIG = JSON.parse(document.getElementById('jobres-config').textContent);
+    </script>
+    {% if websocket_enabled %}
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    {% endif %}
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

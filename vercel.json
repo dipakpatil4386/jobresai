@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pip install --upgrade pip && pip install -r requirements.txt && python -m spacy download en_core_web_sm",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 3008
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
+  ]
+}
