@@ -9,3 +9,4 @@ __pycache__/
 .cursor/
 *.md
 agent-transcripts/
+templates/results.html
