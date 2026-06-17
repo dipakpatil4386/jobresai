@@ -10,3 +10,4 @@ __pycache__/
 *.md
 agent-transcripts/
 templates/results.html
+api/
