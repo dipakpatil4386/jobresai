@@ -1,8 +1,7 @@
 import re
 from typing import Dict, List, Set
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from services.tfidf import TfidfVectorizer, cosine_similarity
 
 from services.resume_processor import ResumeProcessor
 from services.score_calibration import calibrate_cosine_percent, combined_job_match

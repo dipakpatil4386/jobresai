@@ -1,7 +1,6 @@
 from typing import Dict, List, Tuple
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from services.tfidf import TfidfVectorizer, cosine_similarity
 
 import config
 from services.job_search import JobSearchService
@@ -106,7 +105,7 @@ class JobMatcher:
 
         resume_vector = self.vectorizer.transform([query])
         similarities = cosine_similarity(resume_vector, self.job_vectors)[0]
-        top_indices = similarities.argsort()[-top_n:][::-1]
+        top_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[-top_n:][::-1]
 
         raw = [float(similarities[idx]) for idx in top_indices]
         calibrated = calibrate_similarity_batch(raw)
@@ -149,7 +148,7 @@ class JobMatcher:
         resume_vector = live_vectorizer.transform([query])
         similarities = cosine_similarity(resume_vector, vectors)[0]
         calibrated = calibrate_similarity_batch([float(s) for s in similarities])
-        top_indices = similarities.argsort()[-top_n:][::-1]
+        top_indices = sorted(range(len(similarities)), key=lambda i: similarities[i])[-top_n:][::-1]
         return [(jobs[idx], calibrated[idx]) for idx in top_indices]
 
     def generate_recommendations(self, resume_analysis: Dict, resume_text: str, target_role: str = '', top_n: int = 5) -> Dict:

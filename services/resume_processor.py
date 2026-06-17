@@ -4,10 +4,8 @@ import logging
 from datetime import datetime
 from typing import Dict, Optional
 
-import nltk
 import PyPDF2
 import docx2txt
-import spacy
 from werkzeug.datastructures import FileStorage
 
 logger = logging.getLogger(__name__)
@@ -15,23 +13,7 @@ logger = logging.getLogger(__name__)
 
 class ResumeProcessor:
     def __init__(self):
-        self._setup_nltk()
-        self._load_spacy_model()
         self.skill_keywords = self._load_skill_keywords()
-
-    def _setup_nltk(self):
-        for resource in ('punkt', 'punkt_tab', 'stopwords', 'wordnet'):
-            try:
-                nltk.data.find(f'tokenizers/{resource}' if 'punkt' in resource else f'corpora/{resource}')
-            except LookupError:
-                nltk.download(resource, quiet=True)
-
-    def _load_spacy_model(self):
-        try:
-            self.nlp = spacy.load('en_core_web_sm')
-        except OSError:
-            logger.warning('spaCy model not found')
-            self.nlp = None
 
     def _load_skill_keywords(self) -> Dict[str, list]:
         return {
